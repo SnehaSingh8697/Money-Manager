@@ -1,0 +1,430 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package domesticfinancesystem.wallet;
+
+import domesticfinancesystem.MainFrame;
+import domesticfinancesystem.calendar.Database;
+import domesticfinancesystem.picmanager.PictureManager;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.FileSystemView;
+
+/**
+ *
+ * @author sneha
+ */
+public class WalletDialog extends javax.swing.JDialog {
+
+    /**
+     * Creates new form WalletDialog
+     */
+    
+    private Image walletIcon;
+    private  File curfile ;
+    private Database dc;
+    private Connection con;
+    private boolean isUpdate = false;
+    private int walletId;
+    private String imageFormat;
+    private Wallet wallet;
+    private Wallet updateWallet;
+    
+    public WalletDialog(java.awt.Frame parent, boolean modal,Wallet wallet)
+    {
+        this(parent,modal);
+        String name = wallet.getName();
+        Image img = wallet.getImg();
+        if(name != null && !name.isEmpty())
+        {
+            txtWalletName.setText(name);
+            if(img!=null)
+            {
+                 setImageToLabel(img, lblIcon);
+            }
+            isUpdate = true;
+            updateWallet = wallet;
+            this.walletId = wallet.getId();
+        }
+    }
+    
+    public WalletDialog(java.awt.Frame parent, boolean modal) {
+        super(parent, modal);
+        initComponents();
+        setLocationRelativeTo(null);
+        walletIcon = null;
+        FileSystemView fsv = FileSystemView.getFileSystemView() ;
+        curfile = fsv.getHomeDirectory() ;       // For Windows it is the Desktop
+        File file = new File("extras/Images/WalletIcon.png");
+        try {
+            Image img = ImageIO.read(file);
+            setImageToLabel(img, lblIcon);
+        } catch (IOException ex) {
+            Logger.getLogger(WalletDialog.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        dc = MainFrame.dc;
+        con = dc.createConnection();
+    }
+    private  BufferedImage imageToBufferedImage(Image img)
+    {
+        BufferedImage bImg = null ;
+        
+        if(img instanceof BufferedImage)
+            bImg = (BufferedImage) img ;
+        else
+        {
+            bImg = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB) ;
+            Graphics g = bImg.createGraphics() ;
+            g.drawImage(img, 0, 0, null) ;
+            g.dispose();
+        }
+        
+        return bImg ;
+        
+    }
+     private Image scaleImage(Image img,int labelHeight,int labelWidth)
+    {
+        int imageHeight = img.getHeight(null);
+        int imageWidth = img.getWidth(null);
+
+                   if(imageHeight>imageWidth)
+                   {
+                        int newWidth =(int) ((double)labelHeight/imageHeight*imageWidth);
+                        img = img.getScaledInstance(newWidth, labelHeight, Image.SCALE_SMOOTH);
+                   }
+                   else if(imageHeight<imageWidth)
+                   {
+                      int newHeight =(int) ((double)labelWidth/imageWidth*imageHeight);
+                      img = img.getScaledInstance( labelWidth,newHeight, Image.SCALE_SMOOTH); 
+                   }
+                   else
+                   {
+                      int newWidth =(int) ((double)labelHeight/imageHeight*imageWidth);
+                      img = img.getScaledInstance(newWidth, labelHeight, Image.SCALE_SMOOTH); 
+                      
+                   } 
+                   return img;
+    }
+    
+     private void setImageToLabel(Image img,JLabel lbl)
+     {
+         if(img == null)
+         {
+             lbl.setIcon(null);
+             return;
+         }
+                 img = scaleImage(img,143,153);
+                 ImageIcon icon = new ImageIcon(img);
+                 lbl.setIcon(icon);
+     }
+     
+     public Wallet getWallet()
+     {
+         System.out.println("wallet returned");
+         return wallet;
+     }
+     
+     public Wallet getUpdateWallet()
+     {
+         return updateWallet;
+     }
+             
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jLabel1 = new javax.swing.JLabel();
+        txtWalletName = new javax.swing.JTextField();
+        lblIcon = new javax.swing.JLabel();
+        btnUploadIcon = new javax.swing.JButton();
+        btnOK = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        jLabel1.setFont(new java.awt.Font("Garamond", 0, 14)); // NOI18N
+        jLabel1.setText("Wallet Name");
+
+        lblIcon.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        btnUploadIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/testimages/up.png"))); // NOI18N
+        btnUploadIcon.setToolTipText("Upload Icon");
+        btnUploadIcon.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUploadIconActionPerformed(evt);
+            }
+        });
+
+        btnOK.setFont(new java.awt.Font("Garamond", 1, 18)); // NOI18N
+        btnOK.setForeground(new java.awt.Color(0, 102, 0));
+        btnOK.setText("OK");
+        btnOK.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOKActionPerformed(evt);
+            }
+        });
+
+        jButton1.setFont(new java.awt.Font("Garamond", 1, 18)); // NOI18N
+        jButton1.setForeground(new java.awt.Color(102, 0, 0));
+        jButton1.setText("Cancel");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(19, 19, 19)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(18, 18, 18)
+                                .addComponent(lblIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(35, 35, 35)
+                                .addComponent(btnUploadIcon))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(txtWalletName, javax.swing.GroupLayout.PREFERRED_SIZE, 234, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(158, 158, 158)
+                        .addComponent(btnOK, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(27, 27, 27)
+                        .addComponent(jButton1)))
+                .addContainerGap(39, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(txtWalletName, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(18, 18, 18)
+                        .addComponent(lblIcon, javax.swing.GroupLayout.PREFERRED_SIZE, 143, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(115, 115, 115)
+                        .addComponent(btnUploadIcon)))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnOK, javax.swing.GroupLayout.DEFAULT_SIZE, 39, Short.MAX_VALUE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void btnUploadIconActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUploadIconActionPerformed
+        // TODO add your handling code here:
+        JFileChooser ch = new JFileChooser();
+        ch.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        ch.setCurrentDirectory(curfile);
+        FileNameExtensionFilter pfilters = new FileNameExtensionFilter("Picture files", "jpg","jpeg","jpe","jfif","bmp","png","dib");
+        ch.addChoosableFileFilter(pfilters);
+        ch.setAcceptAllFileFilterUsed(false);
+        int result = ch.showOpenDialog(this);
+        if(result == JFileChooser.APPROVE_OPTION)
+        {
+            
+            try 
+            {
+                File imagefile = ch.getSelectedFile();
+                String filename = imagefile.getName();
+                int dotIndex = filename.indexOf(".");
+                imageFormat = filename.substring(dotIndex+1);
+                curfile = imagefile.getParentFile();
+                walletIcon = ImageIO.read(imagefile);
+                setImageToLabel(walletIcon, lblIcon);
+            } 
+            catch (IOException ex) {
+                Logger.getLogger(PictureManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+    }//GEN-LAST:event_btnUploadIconActionPerformed
+
+    private void btnOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOKActionPerformed
+        // TODO add your handling code here:
+        String name = txtWalletName.getText().trim();
+        if(name!=null && !name.isEmpty())
+        {
+            wallet = null;
+            try {
+            String sql = "Select * from Wallet where Name = ?";
+            PreparedStatement pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, name);
+            ResultSet rst = pstmt.executeQuery();
+            
+            if(rst.next() && isUpdate == false)
+            {
+                JOptionPane.showMessageDialog(this, "Wallet Name Aleady Exists", "Message", JOptionPane.ERROR_MESSAGE);
+            }
+            else
+            {
+                if(isUpdate == false)  //Creating new wallet
+                {
+                    BufferedImage tempimg;
+                    Blob blob = null;
+                    if(walletIcon!=null)
+                    {
+                        tempimg = imageToBufferedImage(walletIcon);
+                        blob = con.createBlob();
+                        OutputStream out = blob.setBinaryStream(0);
+                        ImageIO.write(tempimg,imageFormat, out); 
+                    }
+
+                    sql = "Insert into Wallet(Id,Name,Liquidbal,Digitalbal,Pic) ";
+                    sql+="values(seq.nextval,?,?,?,?)";
+                    pstmt = con.prepareStatement(sql);
+                    pstmt.setString(1, name);
+                    pstmt.setInt(2, 0);
+                    pstmt.setInt(3,0);
+                    pstmt.setBlob(4,blob);
+                    pstmt.executeQuery();
+                    
+                    int walletid = 0; 
+                    sql = "Select Id from Wallet where Name = ?";
+                    pstmt = con.prepareStatement(sql);
+                    pstmt.setString(1,name);
+                    rst = pstmt.executeQuery();
+                    if(rst.next())
+                    {
+                        walletid = rst.getInt(1);
+                    }
+                    wallet = new Wallet(walletid, name, walletIcon,0,0);
+                    rst.close();
+                    pstmt.close();
+                }
+                else //Updating existing wallet
+                {
+                    if(walletIcon!=null)//if new icon for the wallet is selected
+                    {
+                        BufferedImage tempimg = imageToBufferedImage(walletIcon);
+                        Blob blob = con.createBlob();
+                        OutputStream out = blob.setBinaryStream(0);
+                        ImageIO.write(tempimg,imageFormat, out);
+                        
+                        sql = "Update Wallet set Name = ?,Pic = ? where Id = ?";
+                        pstmt = con.prepareStatement(sql);
+                        pstmt.setString(1, name);
+                        pstmt.setBlob(2, blob);
+                        pstmt.setInt(3, walletId);
+                        pstmt.executeUpdate();
+                        updateWallet.setImg(walletIcon);
+                    }
+                    else // if the wallet icon remains unchanged
+                    {
+                        sql = "Update Wallet set Name = ? where Id = ?";
+                        pstmt = con.prepareStatement(sql);
+                        pstmt.setString(1, name);
+                        pstmt.setInt(2, walletId);
+                        pstmt.executeUpdate();
+                    }
+                    updateWallet.setName(name);
+                    pstmt.close();
+                }
+            } 
+                setVisible(false);
+            }
+            catch (SQLException | IOException ex) {
+                Logger.getLogger(WalletDialog.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        else
+        {
+            JOptionPane.showMessageDialog(this, "Please Enter Wallet Name!", "Message", JOptionPane.ERROR_MESSAGE);
+
+        }
+    }//GEN-LAST:event_btnOKActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        setVisible(false);
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(WalletDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(WalletDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(WalletDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(WalletDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the dialog */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                WalletDialog dialog = new WalletDialog(new javax.swing.JFrame(), true);
+                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosing(java.awt.event.WindowEvent e) {
+                        System.exit(0);
+                    }
+                });
+                dialog.setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnOK;
+    private javax.swing.JButton btnUploadIcon;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel lblIcon;
+    private javax.swing.JTextField txtWalletName;
+    // End of variables declaration//GEN-END:variables
+}
